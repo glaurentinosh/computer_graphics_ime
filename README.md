@@ -1,6 +1,6 @@
 # computer_graphics_ime
 
-<h1> Projective Mapping
+## Projective Mapping
   
   In this project, we are going to map a texture on a quadrilateral region in a background image, using projective transformations.
   
