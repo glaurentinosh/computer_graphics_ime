@@ -61,13 +61,17 @@ def rp2_to_r2(pixel):
 	norm = 1/pixel[2]
 	return (pixel[0]*norm, pixel[1]*norm)
 
+
+
 if __name__ == "__main__":
 	texture = Image.open("texture.jpg")
 	background = Image.open("background.jpg")
 	width, height = texture.size
 	p = [(0,0,1), (width-1,0,1), (width-1,height-1,1), (0,height-1,1)]
 	q = [(236,247,1), (336,246,1), (337,61,1), (238,69,1)]
+	#q = [(526, 268,1), (751, 545, 1), (931, 371, 1), (657, 118, 1)]
 
+	# Command-line arguments
 	if len(sys.argv) > 1:
 		texture = Image.open(sys.argv[1])
 		background = Image.open(sys.argv[2])
