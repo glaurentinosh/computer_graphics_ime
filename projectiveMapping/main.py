@@ -62,14 +62,24 @@ def rp2_to_r2(pixel):
 	return (pixel[0]*norm, pixel[1]*norm)
 
 
+def map_texture(bck_width, bck_height, inv_h, texture_dim, texture_colors, background):
+	for x in range(bck_width):
+		for y in range(bck_height):
+			pixel = (x, y, 1)
+			xformed_pixel = rp2_to_r2(np.dot(inv_h, pixel))
+
+			if check_inside_rectangle(xformed_pixel, texture_dim):
+				color = get_pixel_color(xformed_pixel, texture_colors, width, height)
+				background.putpixel((x,y), color)
+
 
 if __name__ == "__main__":
-	texture = Image.open("texture.jpg")
-	background = Image.open("background.jpg")
+	texture = Image.open("background3.jpg")
+	background = Image.open("background3.jpg")
 	width, height = texture.size
 	p = [(0,0,1), (width-1,0,1), (width-1,height-1,1), (0,height-1,1)]
-	q = [(236,247,1), (336,246,1), (337,61,1), (238,69,1)]
-	#q = [(526, 268,1), (751, 545, 1), (931, 371, 1), (657, 118, 1)]
+	#q = [(236,247,1), (336,246,1), (337,61,1), (238,69,1)]
+	q = [(526, 268,1), (751, 545, 1), (931, 371, 1), (657, 118, 1)]
 
 	# Command-line arguments
 	if len(sys.argv) > 1:
@@ -87,16 +97,11 @@ if __name__ == "__main__":
 	texture_dim = (0, width, 0, height)
 
 	texture_colors = texture.load()
-	background_colors = background.load()
+	#background_colors = background.load()
 
-	for x in range(bck_width):
-		for y in range(bck_height):
-			pixel = (x, y, 1)
-			xformed_pixel = rp2_to_r2(np.dot(inv_h, pixel))
-
-			if check_inside_rectangle(xformed_pixel, texture_dim):
-				color = get_pixel_color(xformed_pixel, texture_colors, width, height)
-				background.putpixel((x,y), color)
+	for i in range(0,5):
+		map_texture(bck_width, bck_height, inv_h, texture_dim, texture_colors, background)
+		texture_colors = background.load()
 
 	background.save('return.jpg')
 
