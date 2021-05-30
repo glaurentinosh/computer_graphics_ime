@@ -98,6 +98,7 @@ if __name__ == "__main__":
 				color = get_pixel_color(xformed_pixel, texture_colors, width, height)
 				background.putpixel((x,y), color)
 
+	#background.show()
 	background.save('return.jpg')
 
 
