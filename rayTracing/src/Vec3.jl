@@ -39,6 +39,8 @@ function rayAt(ray::Ray, t)
     return ray.origin + t * ray.direction
 end
 
+### SPHERE
+
 struct Sphere{T <: AbstractFloat}
     center::Vec3{T}
     radius::T
@@ -66,6 +68,8 @@ function hit(sphere::Sphere, ray::Ray)
         return (-b - sqrt(delta))/a
     end
 end
+
+### CYLINDER
 
 struct Cylinder{T <: AbstractFloat}
     center::Vec3{T}
@@ -102,3 +106,78 @@ function hit(cylinder::Cylinder, ray::Ray)
         return -1.0
     end
 end
+
+### CONE
+
+struct Cone{T <: AbstractFloat}
+    vertex::Vec3{T}
+    axis::Vec3{T}
+    angle::T
+    height::T
+
+    function Cone{T}(v::Vec3{T}, a::Vec3{T}, g::T, h::T) where T
+        new(v, unitVector(a), g, h)
+    end
+end
+
+function Cone(v::Vec3{T}, a::Vec3{T}, g::T, h::T) where T
+    Cone{T}(v, a, g, h)
+end
+
+function hit(cone::Cone, ray::Ray)
+    a = normSquared(ray.direction)*(cos(cone.angle))^2 - (dot(ray.direction, cone.axis))^2
+    VA = ray.origin - cone.vertex
+    b = dot(VA, ray.direction)*(cos(cone.angle))^2 - dot(VA, cone.axis)*dot(ray.direction, cone.axis)
+    c = normSquared(VA)*(cos(cone.angle))^2 - (dot(VA, cone.axis))^2
+
+    delta = b*b - a*c
+
+    if delta <= 0
+        return -1.0
+    else
+        t = (-b - sqrt(delta))/a
+        if abs(dot(ray.origin + t*ray.direction - cone.vertex, cone.axis) - cone.height/2) < cone.height/2
+            return t
+        end
+        return -1.0
+    end
+end
+
+# PARABOLLOID
+
+struct Parabolloid{T <: AbstractFloat}
+    vertex::Vec3{T}
+    axis::Vec3{T}
+    radius::T
+    height::T
+
+    function Parabolloid{T}(v::Vec3{T}, a::Vec3{T}, k::T, h::T) where T
+        new(v, unitVector(a), k, h)
+    end
+end
+
+function Parabolloid(v::Vec3{T}, a::Vec3{T}, k::T, h::T) where T
+    Parabolloid{T}(v, a, k, h)
+end
+
+function hit(parabolloid::Parabolloid, ray::Ray)
+    k = parabolloid.radius^2
+    VA = ray.origin - parabolloid.vertex
+
+    a = normSquared(ray.direction)*k - (dot(ray.direction, parabolloid.axis))^2*(1 + k)
+    b = dot(VA, ray.direction)*k - dot(VA, parabolloid.axis)*dot(ray.direction, parabolloid.axis)*(1 + k)
+    c = normSquared(VA)*k - (dot(VA, parabolloid.axis))^2*(1 + k)
+
+    delta = b*b - a*c
+
+    if delta <= 0
+        return -1.0
+    else
+        t = (-b - sqrt(delta))/a
+        if abs(dot(ray.origin + t*ray.direction - parabolloid.vertex, parabolloid.axis) - parabolloid.height/2) < parabolloid.height/2
+            return t
+        end
+        return -1.0
+    end
+end
+

@@ -19,8 +19,8 @@ lowerLeftCorner = origin - Vec3(0.0, 0.0, focalLength) - horizontal/2 - vertical
 # LIGHT SOURCE
 # Use spherical or euclidian coordinates
 phi = 0
-psi = 5*pi/12
-rho = 1.2
+psi = 0
+rho = 20
 lightPos = Vec3(rho*cos(phi)*sin(psi), rho*sin(phi)*sin(psi), rho*cos(psi))
 #lightPos = Vec3(0.0, 1.0, 1.0)
 
@@ -35,7 +35,7 @@ Kdg = 0.0*factor
 Kdb = 0.0*factor
 
 # SPECULAR
-Ks = 0.8
+Ks = 0.0
 n = 25
 
 #################
@@ -46,6 +46,12 @@ s1 = Sphere(Vec3(0.0, 0.0, -1.0), 0.5)
 
 # Cylinder
 c1 = Cylinder(Vec3(0.0, 0.0, -1.0), Vec3(1.0, 1.0, 0.0), 0.5, 0.3)
+
+# Cone
+k1 = Cone(Vec3(0.0, 0.8, -1.0), Vec3(0.0, -1.0, 0.0), pi/6, 1.0)
+
+# Parabolloid
+p1 = Parabolloid(Vec3(0.0, 0.0, -1.0), Vec3(1.0, 1.0, 0.0), 0.2, 0.5)
 
 
 # COLORS
@@ -128,6 +134,78 @@ function rayColor(ray::Ray, cylinder::Cylinder)
     return bckCol
 end
 
+function rayColor(ray::Ray, cone::Cone)
+    t = hit(cone, ray)
+    bckCol = backgroundColor(ray.direction)
+    k = 0.0
+
+    if t > 0.0
+        p = rayAt(ray, t)
+        VP = p - cone.vertex
+        normal = unitVector(VP - dot(VP, cone.axis)*cone.axis)
+
+        L = unitVector(lightPos - p)
+        R = unitVector(reflection( p - lightPos , normal))
+        V = unitVector(origin - p)
+
+        NL = dot(normal, L)
+        #if (NL < 0) println(NL) end
+        KsRVn = Ks*dot(R, V)^n
+
+        r = (Kdr*NL + KsRVn)*I[1] + Iamb[1] 
+        g = (Kdg*NL + KsRVn)*I[2] + Iamb[2]
+        b = (Kdb*NL + KsRVn)*I[3] + Iamb[3]
+
+        r = min(max(r, 0), 1) 
+        g = min(max(g, 0), 1)
+        b = min(max(b, 0), 1)
+
+        return (1 - k) * RGB(r, g, b) + k * bckCol
+
+        #ncolor = 0.5 * (normal .+ 1.0)
+        #return RGB(ncolor...)
+    end
+    return bckCol
+end
+
+function rayColor(ray::Ray, parabolloid::Parabolloid)
+    t = hit(parabolloid, ray)
+    bckCol = backgroundColor(ray.direction)
+    k = 0.0
+
+    if t > 0.0
+        p = rayAt(ray, t)
+        VP = p - parabolloid.vertex
+        k = parabolloid.radius^2
+
+        # Gradient of 
+        normalBig = Vec3(2*k*VP[1], 2*k*VP[2], -1.0)
+        normal = unitVector(normalBig)
+
+        L = unitVector(lightPos - p)
+        R = unitVector(reflection( p - lightPos , normal))
+        V = unitVector(origin - p)
+
+        NL = dot(normal, L)
+        #if (NL < 0) println(NL) end
+        KsRVn = Ks*dot(R, V)^n
+
+        r = (Kdr*NL + KsRVn)*I[1] + Iamb[1] 
+        g = (Kdg*NL + KsRVn)*I[2] + Iamb[2]
+        b = (Kdb*NL + KsRVn)*I[3] + Iamb[3]
+
+        r = min(max(r, 0), 1) 
+        g = min(max(g, 0), 1)
+        b = min(max(b, 0), 1)
+
+        return (1 - k) * RGB(r, g, b) + k * bckCol
+
+        #ncolor = 0.5 * (normal .+ 1.0)
+        #return RGB(ncolor...)
+    end
+    return bckCol
+end
+
 # RENDER
 for i = 1:height
     for j = 1:width
@@ -138,7 +216,7 @@ for i = 1:height
 
         ray = Ray(origin, dir)
 
-        image[i, j] = rayColor(ray, c1)
+        image[i, j] = rayColor(ray, p1)
     end
 end
 
