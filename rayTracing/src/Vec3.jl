@@ -66,3 +66,39 @@ function hit(sphere::Sphere, ray::Ray)
         return (-b - sqrt(delta))/a
     end
 end
+
+struct Cylinder{T <: AbstractFloat}
+    center::Vec3{T}
+    axis::Vec3{T}
+    radius::T
+    height::T
+
+    function Cylinder{T}(c::Vec3{T}, a::Vec3{T}, r::T, h::T) where T
+        new(c, unitVector(a), r, h)
+    end
+end
+
+function Cylinder(c::Vec3, a::Vec3, r::T, h::T) where T
+    Cylinder{T}(c, a, r, h)
+end
+
+function hit(cylinder::Cylinder, ray::Ray)
+    a = normSquared(ray.direction) - (dot(ray.direction, cylinder.axis))^2
+    CA = ray.origin - cylinder.center
+    b = dot(CA, ray.direction) - dot(CA, cylinder.axis)*dot(ray.direction, cylinder.axis)
+    #b = dot(ray.origin, ray.direction) - dot(ray.origin, cylinder.axis)*dot(ray.direction, cylinder.axis)
+    #c = normSquared(ray.origin) - (dot(ray.origin, cylinder.axis))^2 + (dot(cylinder.center, cylinder.axis))^2 - (cylinder.radius)^2
+    c = normSquared(CA) - (dot(CA, cylinder.axis))^2 - cylinder.radius^2
+
+    delta = b*b - a*c
+
+    if delta <= 0
+        return -1.0
+    else
+        t = (-b - sqrt(delta))/a
+        if abs(dot(ray.origin + t*ray.direction - cylinder.center, cylinder.axis)) < cylinder.height
+            return t
+        end
+        return -1.0
+    end
+end
